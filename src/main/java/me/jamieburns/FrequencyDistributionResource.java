@@ -3,6 +3,7 @@ package me.jamieburns;
 import java.util.List;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.smallrye.mutiny.Uni;
 import jakarta.inject.Named;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -17,11 +18,11 @@ public class FrequencyDistributionResource {
     public record FrequencyListResponse(String version, List<Frequency> frequencies) {}
 
     private FrequencyDistributionService fdService;
-    private OneHundredRandomIntegersService randomService;
+    private RandomIntegersService randomService;
 
     public FrequencyDistributionResource(
         @Named(FrequencyDistributionService5.VERSION) FrequencyDistributionService fdService,
-        OneHundredRandomIntegersService randomService)
+        RandomIntegersService randomService)
     {
         this.fdService = fdService;
         this.randomService = randomService;
@@ -29,26 +30,30 @@ public class FrequencyDistributionResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response fd() {
-        return Response
-            .ok()
-            .entity(new FrequencyListResponse(
-                fdService.version(),
-                fdService.toFrequencyDistributionSortedByN(randomService.createRandomIntegersList())
-            ))
-            .build();
+    public Uni<Response> fd() {
+        return randomService.generateRandomIntegers(10)
+            .map(list -> Response
+                .ok()
+                .entity(new FrequencyListResponse(
+                    fdService.version(),
+                    fdService.toFrequencyDistributionSortedByN(list)
+                ))
+                .build()
+            );
     }
 
     @GET
     @Path("/sorted")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response fdSorted() {
-        return Response
-            .ok()
-            .entity(new FrequencyListResponse(
-                fdService.version(),
-                fdService.toFrequencyDistributionSortedByF(randomService.createRandomIntegersList())
-            ))
-            .build();
+    public Uni<Response> fdSorted() {
+        return randomService.generateRandomIntegers(10)
+            .map(list -> Response
+                .ok()
+                .entity(new FrequencyListResponse(
+                    fdService.version(),
+                    fdService.toFrequencyDistributionSortedByF(list)
+                ))
+                .build()
+            );
     }
 }
