@@ -1,4 +1,4 @@
-# learn-quarkus-03
+# frequency-distribution
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
@@ -49,7 +49,7 @@ Or, if you don't have GraalVM installed, you can run the native executable build
 ./mvnw package -Dnative -Dquarkus.native.container-build=true
 ```
 
-You can then execute your native executable with: `./target/learn-quarkus-03-1.0.0-SNAPSHOT-runner`
+You can then execute your native executable with: `./target/frequency-distribution-1.0.0-SNAPSHOT-runner`
 
 If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
 
@@ -67,8 +67,8 @@ All build strategies live on `main`; no per-strategy branches are needed.
 
 | Strategy | Files | How to run |
 |---|---|---|
-| s2i (in-cluster) | `.s2i/environment`, `openshift/buildconfig-s2i.yaml` | `oc apply -f openshift/buildconfig-s2i.yaml && oc start-build learn-quarkus-03-s2i` |
-| Docker, JVM (in-cluster) | `openshift/Dockerfile.jvm`, `openshift/buildconfig-docker-jvm.yaml` | `oc apply -f openshift/buildconfig-docker-jvm.yaml && oc start-build learn-quarkus-03-docker-jvm` |
+| s2i (in-cluster) | `.s2i/environment`, `openshift/buildconfig-s2i.yaml` | `oc apply -f openshift/buildconfig-s2i.yaml && oc start-build frequency-distribution-s2i` |
+| Docker, JVM (in-cluster) | `openshift/Dockerfile.jvm`, `openshift/buildconfig-docker-jvm.yaml` | `oc apply -f openshift/buildconfig-docker-jvm.yaml && oc start-build frequency-distribution-docker-jvm` |
 | Docker, native (local podman) | `openshift/Dockerfile.native`, `openshift/build-native.sh` | `openshift/build-native.sh` (set `TLS_VERIFY=false` for a self-signed registry cert) |
 
 The native build runs locally because the cluster does not support the multi-stage Mandrel build.

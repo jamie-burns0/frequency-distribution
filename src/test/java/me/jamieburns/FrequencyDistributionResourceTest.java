@@ -1,6 +1,8 @@
 package me.jamieburns;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.core.Response;
 import me.jamieburns.FrequencyDistributionResource.FrequencyListResponse;
 
@@ -15,13 +17,25 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class FrequencyDistributionResourceTest {
+
+    @InjectMock 
+    RandomIntegersService mockService;
+
     @Test
     void testFdEndpoint() {
+
+        when(mockService.generateRandomIntegers(anyInt()))
+            .thenReturn(
+                Uni.createFrom().item(
+                    List.of(3, 1, 2)
+                )
+            );
+
         given()
             .when().get("/fd")
             .then()
@@ -71,23 +85,31 @@ class FrequencyDistributionResourceTest {
 
     @Test
     void testFdEndpointWithMockRandomService() {
-        OneHundredRandomIntegersService mockRandomService = mock(OneHundredRandomIntegersService.class);
-        when(mockRandomService.createRandomIntegersList()).thenReturn(List.of(3, 1, 2, 1, 3, 3, 4));
+
+        when(mockService.generateRandomIntegers(anyInt()))
+            .thenReturn(
+                Uni.createFrom()
+                    .item(
+                        List.of(3, 1, 2, 1, 3, 3, 4)
+                    )
+            );
 
         FrequencyDistributionResource resource = new FrequencyDistributionResource(
                 new FrequencyDistributionService1(),
-                mockRandomService
+                mockService
         );
 
-        Response response = resource.fd();
+        Response response = resource.fd().await().indefinitely();
 
         assertEquals(200, response.getStatus());
-        assertEquals(new FrequencyListResponse(FrequencyDistributionService1.VERSION,
+        assertEquals(new FrequencyListResponse(
+            FrequencyDistributionService1.VERSION,
             List.of(
                 new Frequency(1, 2),
                 new Frequency(2, 1),
                 new Frequency(3, 3),
                 new Frequency(4, 1)
-        )), response.getEntity());
+            )
+        ), response.getEntity());
     }
 }
