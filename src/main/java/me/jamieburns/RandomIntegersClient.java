@@ -12,5 +12,5 @@ import jakarta.ws.rs.QueryParam;
 public interface RandomIntegersClient {
 
     @GET
-    public Uni<Object> generateRandomIntegers(@QueryParam("numberOfIntegers") Integer numberOfIntegers);
+    public Uni<RandomIntegersClientResponse> generateRandomIntegers(@QueryParam("numberOfIntegers") Integer numberOfIntegers);
 }

@@ -5,7 +5,9 @@ import java.util.List;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import io.smallrye.mutiny.Uni;
+import jakarta.enterprise.context.ApplicationScoped;
 
+@ApplicationScoped 
 public class RandomIntegersService {
 
     @RestClient
@@ -13,8 +15,13 @@ public class RandomIntegersService {
 
     Uni<List<Integer>> generateRandomIntegers(int numberOfIntegers) {
         return client.generateRandomIntegers(numberOfIntegers)
-            .onItem()
-            .invoke(resp -> System.out.println("[resp=%s]".formatted(resp)))
-            .replaceWith(List.of(10, 15, 4, 3));
+            .onItem().invoke(this::ensureSuccess)
+            .onItem().transform(RandomIntegersClientResponse::data);
+    }
+
+    private void ensureSuccess(RandomIntegersClientResponse resp) {
+        if(!resp.success()) {
+            throw new RuntimeException("Call to random-integers client failed. [error=%s]".formatted(resp.error()));
+        }
     }
 }
