@@ -4,7 +4,6 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.core.Response;
-import me.jamieburns.FrequencyDistributionResource.FrequencyListResponse;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -16,20 +15,21 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class FrequencyDistributionResourceTest {
 
-    @InjectMock 
+    @InjectMock
     RandomIntegersService mockService;
 
     @Test
-    void testFdEndpoint() {
-
-        when(mockService.generateRandomIntegers(anyInt()))
+    void testFdGetEndpoint() {
+        
+        when(mockService.generateRandomIntegers())
             .thenReturn(
                 Uni.createFrom().item(
                     List.of(3, 1, 2)
@@ -40,9 +40,34 @@ class FrequencyDistributionResourceTest {
             .when().get("/fd")
             .then()
             .statusCode(200)
-            .body("frequencies.size()", greaterThan(0))
-            .body("frequencies[0]", hasKey("n"))
-            .body("frequencies[0]", hasKey("f"));
+            .body("frequencyList.size()", greaterThan(0))
+            .body("frequencyList[0]", hasKey("n"))
+            .body("frequencyList[0]", hasKey("f"));
+    }
+
+    @Test
+    void testFdPostEndpointWithData() {
+
+        given()
+            .contentType("application/json")
+            .body("{\"data\": [3, 1, 2, 1, 3, 3, 4]}")
+            .when().post("/fd")
+            .then()
+            .statusCode(200)
+            .body("frequencyList.size()", equalTo(4));
+    }
+
+    @Test
+    void testFdPostEndpointWithEmptyData() {
+
+        given()
+            .contentType("application/json")
+            .body("{\"data\": []}")
+            .when().post("/fd")
+            .then()
+            .statusCode(200)
+            .body("frequencyList.size()", equalTo(0))
+            .body("version", notNullValue());
     }
 
     static Stream<FrequencyDistributionService> frequencyDistributionServices() {
@@ -86,7 +111,7 @@ class FrequencyDistributionResourceTest {
     @Test
     void testFdEndpointWithMockRandomService() {
 
-        when(mockService.generateRandomIntegers(anyInt()))
+        when(mockService.generateRandomIntegers())
             .thenReturn(
                 Uni.createFrom()
                     .item(
@@ -94,15 +119,19 @@ class FrequencyDistributionResourceTest {
                     )
             );
 
+        var fdService = new FrequencyDistributionService1();
+        var helper = new FrequencyDistributionResourceHelper(fdService);
+
         FrequencyDistributionResource resource = new FrequencyDistributionResource(
-                new FrequencyDistributionService1(),
-                mockService
+                fdService,
+                mockService,
+                helper
         );
 
         Response response = resource.fd().await().indefinitely();
 
         assertEquals(200, response.getStatus());
-        assertEquals(new FrequencyListResponse(
+        assertEquals(new FrequencyDistributionResponse(
             FrequencyDistributionService1.VERSION,
             List.of(
                 new Frequency(1, 2),

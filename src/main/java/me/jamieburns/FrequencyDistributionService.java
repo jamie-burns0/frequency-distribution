@@ -12,4 +12,8 @@ sealed interface FrequencyDistributionService
     List<Frequency> toFrequencyDistributionSortedByN(List<Integer> data);
     List<Frequency> toFrequencyDistributionSortedByF(List<Integer> data);
     String version();
+
+    default List<Frequency> emptyFrequencyDistribution() {
+        return List.of();
+    }
 }

@@ -2,6 +2,7 @@ package me.jamieburns;
 
 import java.util.List;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import io.smallrye.mutiny.Uni;
@@ -12,6 +13,20 @@ public class RandomIntegersService {
 
     @RestClient
     RandomIntegersClient client;
+
+    final int numberOfIntegers;
+
+    public RandomIntegersService(
+        @ConfigProperty(name = "max-number-of-integers")
+        int numberOfIntegers
+    )
+    {
+        this.numberOfIntegers = numberOfIntegers;
+    }
+
+    Uni<List<Integer>> generateRandomIntegers() {
+        return generateRandomIntegers(numberOfIntegers);
+    }
 
     Uni<List<Integer>> generateRandomIntegers(int numberOfIntegers) {
         return client.generateRandomIntegers(numberOfIntegers)
