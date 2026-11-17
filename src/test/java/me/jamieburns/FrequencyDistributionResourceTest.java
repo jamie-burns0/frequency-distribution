@@ -1,9 +1,6 @@
 package me.jamieburns;
 
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.smallrye.mutiny.Uni;
-import jakarta.ws.rs.core.Response;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,37 +10,12 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class FrequencyDistributionResourceTest {
-
-    @InjectMock
-    RandomIntegersService mockService;
-
-    @Test
-    void testFdGetEndpoint() {
-        
-        when(mockService.generateRandomIntegers())
-            .thenReturn(
-                Uni.createFrom().item(
-                    List.of(3, 1, 2)
-                )
-            );
-
-        given()
-            .when().get("/fd")
-            .then()
-            .statusCode(200)
-            .body("frequencyList.size()", greaterThan(0))
-            .body("frequencyList[0]", hasKey("n"))
-            .body("frequencyList[0]", hasKey("f"));
-    }
 
     @Test
     void testFdPostEndpointWithData() {
@@ -108,37 +80,38 @@ class FrequencyDistributionResourceTest {
         assertEquals(expected, service.toFrequencyDistributionSortedByF(input));
     }
 
-    @Test
-    void testFdEndpointWithMockRandomService() {
-
-        when(mockService.generateRandomIntegers())
-            .thenReturn(
-                Uni.createFrom()
-                    .item(
-                        List.of(3, 1, 2, 1, 3, 3, 4)
-                    )
-            );
-
-        var fdService = new FrequencyDistributionService1();
-        var helper = new FrequencyDistributionResourceHelper(fdService);
-
-        FrequencyDistributionResource resource = new FrequencyDistributionResource(
-                fdService,
-                mockService,
-                helper
+    static Stream<FrequencyDistributionRequest> requestsWithNoData() {
+        return Stream.of(
+            null,
+            new FrequencyDistributionRequest(null),
+            new FrequencyDistributionRequest(List.of())
         );
+    }
 
-        Response response = resource.fd().await().indefinitely();
+    @ParameterizedTest
+    @MethodSource("requestsWithNoData")
+    void testRequestHasNoData(FrequencyDistributionRequest request) {
+        var resource = new FrequencyDistributionResource(
+            new FrequencyDistributionService5()
+        );
+        
+        assertEquals(true, resource.requestHasNoData(request));
+    }
 
-        assertEquals(200, response.getStatus());
-        assertEquals(new FrequencyDistributionResponse(
-            FrequencyDistributionService1.VERSION,
-            List.of(
-                new Frequency(1, 2),
-                new Frequency(2, 1),
-                new Frequency(3, 3),
-                new Frequency(4, 1)
-            )
-        ), response.getEntity());
+    static Stream<FrequencyDistributionRequest> requestsWithData() {
+        return Stream.of(
+            new FrequencyDistributionRequest(List.of(1, 2, 3)),
+            new FrequencyDistributionRequest(List.of(42))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("requestsWithData")
+    void testRequestHasData(FrequencyDistributionRequest request) {
+        var resource = new FrequencyDistributionResource(
+            new FrequencyDistributionService5()
+        );
+        
+        assertEquals(false, resource.requestHasNoData(request));
     }
 }
