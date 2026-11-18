@@ -29,7 +29,7 @@ public class ApiResponseHelper {
 
     Response newErrorResponse(String errorMessage) {
         return Response
-            .status(Response.Status.INTERNAL_SERVER_ERROR)
+            .ok()
             .type(MediaType.APPLICATION_JSON)
             .entity(
                 ApiResponse.error(errorMessage)
