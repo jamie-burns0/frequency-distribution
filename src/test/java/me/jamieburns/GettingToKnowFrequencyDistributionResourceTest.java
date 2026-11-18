@@ -23,7 +23,12 @@ class GettingToKnowFrequencyDistributionResourceTest {
     void testFdGetEndpoint() {
         when(mockService.generateRandomIntegers())
             .thenReturn(
-                Uni.createFrom().item(List.of(3, 1, 2))
+                Uni.createFrom().item(
+                    new RandomIntegersResponse(
+                        true,
+                        List.of(3, 1, 2),
+                        null)
+                    )
             );
 
         given()
@@ -38,7 +43,13 @@ class GettingToKnowFrequencyDistributionResourceTest {
     void testFdSortedGetEndpoint() {
         when(mockService.generateRandomIntegers())
             .thenReturn(
-                Uni.createFrom().item(List.of(3, 1, 2, 1, 3, 3, 4))
+                Uni.createFrom().item(
+                    new RandomIntegersResponse(
+                        true,
+                        List.of(3, 1, 2, 1, 3, 3, 4),
+                        null
+                    )
+                )
             );
 
         given()

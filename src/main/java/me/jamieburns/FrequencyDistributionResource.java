@@ -14,13 +14,13 @@ import jakarta.ws.rs.core.Response;
 public class FrequencyDistributionResource {
 
     private FrequencyDistributionService fdService;
-    private FrequencyDistributionResponseHelper helper;
+    private ApiResponseHelper helper;
 
     public FrequencyDistributionResource(
         @Named(FrequencyDistributionService5.VERSION) FrequencyDistributionService fdService)
     {
         this.fdService = fdService;
-        this.helper = new FrequencyDistributionResponseHelper(fdService);
+        this.helper = new ApiResponseHelper(fdService);
     }
 
     @POST

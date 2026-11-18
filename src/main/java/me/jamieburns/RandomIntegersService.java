@@ -1,7 +1,5 @@
 package me.jamieburns;
 
-import java.util.List;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
@@ -24,19 +22,11 @@ public class RandomIntegersService {
         this.numberOfIntegers = numberOfIntegers;
     }
 
-    Uni<List<Integer>> generateRandomIntegers() {
+    Uni<RandomIntegersResponse> generateRandomIntegers() {
         return generateRandomIntegers(numberOfIntegers);
     }
 
-    Uni<List<Integer>> generateRandomIntegers(int numberOfIntegers) {
-        return client.generateRandomIntegers(numberOfIntegers)
-            .onItem().invoke(this::ensureSuccess)
-            .onItem().transform(RandomIntegersClientResponse::data);
-    }
-
-    private void ensureSuccess(RandomIntegersClientResponse resp) {
-        if(!resp.success()) {
-            throw new RuntimeException("Call to random-integers client failed. [error=%s]".formatted(resp.error()));
-        }
+    Uni<RandomIntegersResponse> generateRandomIntegers(int numberOfIntegers) {
+        return client.generateRandomIntegers(numberOfIntegers);
     }
 }
