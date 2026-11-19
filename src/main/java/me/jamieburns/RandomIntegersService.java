@@ -27,6 +27,10 @@ public class RandomIntegersService {
     }
 
     Uni<RandomIntegersResponse> generateRandomIntegers(int numberOfIntegers) {
-        return client.generateRandomIntegers(numberOfIntegers);
+        return client.generateRandomIntegers(numberOfIntegers)
+            .onFailure().invoke(throwable -> System.out.println("RIS: failure: throwable=%s".formatted(throwable)))
+            .onFailure().recoverWithItem(throwable ->
+                new RandomIntegersResponse(false, null, throwable.getMessage())
+            );
     }
 }

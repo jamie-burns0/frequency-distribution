@@ -2,6 +2,7 @@ package me.jamieburns;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
+import io.smallrye.faulttolerance.api.ApplyGuard;
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -17,6 +18,11 @@ import jakarta.ws.rs.core.MediaType;
 public interface RandomIntegersClient {
 
     @GET
+    // not configurable at runtime
+    // @Retry(maxRetries = 2, delay = 3000)
+    //
+    // configurable at runtime
+    @ApplyGuard("random-integers-client-retry")
     public Uni<RandomIntegersResponse> generateRandomIntegers(
         @QueryParam("numberOfIntegers") Integer numberOfIntegers
     );
